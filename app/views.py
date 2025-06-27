@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from .layers.services import services
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from django.contrib.auth.forms import UserCreationForm          # Register
 
 def index_page(request):
     """
@@ -20,11 +21,11 @@ def home(request):
     sobre los favoritos del usuario para renderizar el botón
     correspondiente.
     """
-    images = services.getAllImages()                            # Gody//
+    images = services.getAllImages()
     favourite_list = []
 
-    for img_card in services.getAllFavourites(request):         # Gody//
-        favourite_list.append(img_card.name)                    # Gody//
+    for img_card in services.getAllFavourites(request):
+        favourite_list.append(img_card.name)
     
     return render(request, 'home.html', { 'images': images, 'favourite_list': favourite_list })
 
@@ -41,15 +42,11 @@ def search(request):
 
     # si el usuario ingresó algo en el buscador, se deben filtrar las imágenes por dicho ingreso.
     if (name != ''):
-        images = []
+        images = services.filterByCharacter(name)
         favourite_list = []
 
-        for img_card in services.getAllFavourites(request):     # Gody//
-            favourite_list.append(img_card.name)                # Gody//lista los nombres de pokemon en favoritos
-
-        for img_card in services.getAllImages():                # Gody//filtra las imagenes por nombre
-            if img_card.name == name.lower():                   # Gody//
-                images.append(img_card)                         # Gody//
+        for img_card in services.getAllFavourites(request):
+            favourite_list.append(img_card.name)                # lista los nombres de pokemon en favoritos
         
         return render(request, 'home.html', { 'images': images, 'favourite_list': favourite_list })
     else:
@@ -68,19 +65,32 @@ def filter_by_type(request):
     print(type)
 
     if type != '':
-        images = [] # debe traer un listado filtrado de imágenes, segun si es o contiene ese tipo.
+        images = []                                             # debe traer un listado filtrado de imágenes, segun si es o contiene ese tipo.
         favourite_list = []
 
-        for img_card in services.getAllFavourites(request):     # Gody//
-            favourite_list.append(img_card.name)                # Gody//lista los nombres de pokemon en favoritos
+        for img_card in services.getAllFavourites(request):
+            favourite_list.append(img_card.name)                # lista los nombres de pokemon en favoritos
 
-        for img_card in services.getAllImages():                # Gody//un bucle que filtra las imagenes por tipo
-            if type in img_card.types:                          # Gody//
-                images.append(img_card)                         # Gody//
+        for img_card in services.getAllImages():                # un bucle que filtra las imagenes por tipo
+            if type in img_card.types:
+                images.append(img_card)
         
         return render(request, 'home.html', { 'images': images, 'favourite_list': favourite_list })
     else:
         return redirect('home')
+    
+
+def register(request):                                          # <Register>
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()                                         # Crea el usuario
+            return redirect('login')                            # Redirige a la vista de login
+    else:
+        form = UserCreationForm()
+    
+    return render(request, 'registration/register.html', {'form': form})     # </Register>
+
 
 # Estas funciones se usan cuando el usuario está logueado en la aplicación.
 @login_required
@@ -91,8 +101,8 @@ def getAllFavouritesByUser(request):
     renderizar, usando la plantilla favoritos, las imagenes de los 
     pokemon que esten agregados a favoritos.
     """
-    favourite_list = services.getAllFavourites(request)         # Gody//
-    return render(request, 'favourites.html', { 'favourite_list': favourite_list }) # Gody//
+    favourite_list = services.getAllFavourites(request)
+    return render(request, 'favourites.html', { 'favourite_list': favourite_list })
 
 @login_required
 def saveFavourite(request):

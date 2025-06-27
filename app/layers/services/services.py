@@ -5,6 +5,7 @@ from ...config import config
 from ..persistence import repositories
 from ..utilities import translator
 from django.contrib.auth import get_user
+from difflib import get_close_matches           # permite la busqueda inexacta de nombres de pokemones
 
 # función que devuelve un listado de cards. Cada card representa una imagen de la API de Pokemon
 def getAllImages():
@@ -17,18 +18,18 @@ def getAllImages():
     # 1) traer un listado de imágenes crudas desde la API (ver transport.py)
     # 2) convertir cada img. en una card.
     # 3) añadirlas a un nuevo listado que, finalmente, se retornará con todas las card encontradas.
-    list_of_cards = []                                          # Gody//guarda una lista de tarjetas
-    for raw_image in transport.getAllImages():                  # Gody//un bucle que toma los datos crudos y los transforma en tarjetas
-        card = translator.fromRequestIntoCard(raw_image)        # Gody//
+    list_of_cards = []                                          
+    for raw_image in transport.getAllImages():                  
+        card = translator.fromRequestIntoCard(raw_image)        
         
-        type_url = []                                           # Gody//
-        for type in card.types:                                 # Gody//
-            type_url.append(get_type_icon_url_by_name(type))    # Gody//
+        type_url = []                                           
+        for type in card.types:                                 
+            type_url.append(get_type_icon_url_by_name(type))    
 
-        card.types_url = type_url                               # Gody//
-        list_of_cards.append(card)                              # Gody//
+        card.types_url = type_url                               
+        list_of_cards.append(card)                              
 
-    return list_of_cards                                        # Gody//retorna las imagenes como una lista de tarjetas
+    return list_of_cards                                        
 
 # función que filtra según el nombre del pokemon.
 def filterByCharacter(name):
@@ -38,12 +39,14 @@ def filterByCharacter(name):
     tarjetas que contengan, en su nombre, la cadena ingresada como
     argumento.
     """
-    filtered_cards = []
+    poke_names = [card.name for card in getAllImages()]
+    similar_names = get_close_matches(name, poke_names, n=9, cutoff=0.6)
+    filtered_cards = [card for card in getAllImages() if card.name in similar_names]
 
-    for card in getAllImages():
-        # debe verificar si el name está contenido en el nombre de la card, antes de agregarlo al listado de filtered_cards.
-        if name in card.name:                        # Gody//agrege el if para que filtre por nombre
-            filtered_cards.append(card)
+    # alternativa con los conocimientos del curso
+    # for card in getAllImages():
+    #     if name in card.name:                        
+    #         filtered_cards.append(card)
 
     return filtered_cards
 
@@ -58,7 +61,7 @@ def filterByType(type_filter):
 
     for card in getAllImages():
         # debe verificar si la casa de la card coincide con la recibida por parámetro. Si es así, se añade al listado de filtered_cards.
-        if type_filter in card.types:                 # Gody//agregue el if para que filtre por tipo
+        if type_filter in card.types:                 
             filtered_cards.append(card)
 
     return filtered_cards
@@ -72,7 +75,7 @@ def saveFavourite(request):
     del usuario. La tarjeta es guardada en los favoritos del usuario
     y se retorna una respuesta http.
     """
-    fav = translator.fromTemplateIntoCard(request) # Gody//transformamos un request en una Card (ver translator.py)
+    fav = translator.fromTemplateIntoCard(request) 
     fav.user = get_user(request) # le asignamos el usuario correspondiente.
 
     return repositories.save_favourite(fav) # lo guardamos en la BD.
@@ -91,11 +94,11 @@ def getAllFavourites(request):
     else:
         user = get_user(request)
 
-        favourite_list = repositories.get_all_favourites(user) # Gody//buscamos desde el repositories.py TODOS Los favoritos del usuario (variable 'user').
+        favourite_list = repositories.get_all_favourites(user) 
         mapped_favourites = []
 
         for favourite in favourite_list:
-            card = translator.fromRepositoryIntoCard(favourite) # Gody//convertimos cada favorito en una Card, y lo almacenamos en el listado de mapped_favourites que luego se retorna.
+            card = translator.fromRepositoryIntoCard(favourite) 
             mapped_favourites.append(card)
 
         return mapped_favourites
