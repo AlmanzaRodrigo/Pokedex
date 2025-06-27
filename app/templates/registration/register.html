@@ -1,0 +1,23 @@
+{% extends 'header.html' %} {% block content %} {% load widget_tweaks %}
+<div style="text-align: center;">
+    <h2 class="text-center">Registrarse</h2>
+    <form method="POST" style="display: inline-block;">
+    {% csrf_token %}
+
+    <div class="form-group" style="margin-bottom: 5%;">
+        {{ form.username|add_class:"form-control"|attr:"placeholder:Usuario" }}
+    </div>
+
+    <div class="form-group" style="margin-bottom: 5%;">
+        {{ form.password1|add_class:"form-control"|attr:"placeholder:Contraseña" }}
+    </div>
+
+    <div class="form-group" style="margin-bottom: 5%;">
+        {{ form.password2|add_class:"form-control"|attr:"placeholder:Repetir contraseña" }}
+    </div>
+    <div>
+        <button type="submit" class="btn btn-primary btn-block">Registrarse</button>
+    </div class="form-group">
+    </form>
+</div>
+{% endblock %}

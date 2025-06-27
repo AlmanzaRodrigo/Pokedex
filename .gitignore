@@ -1,0 +1,9 @@
+.venv
+app/__pycache__
+app/config/__pycache__
+app/layers/persistence/__pycache__
+app/layers/services/__pycache__
+app/layers/utilities/__pycache__
+app/layers/transport/__pycache__
+app/migrations/__pycache__
+main/__pycache__
